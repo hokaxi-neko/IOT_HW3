@@ -1,21 +1,8 @@
-# Core ML & Data
-scikit-learn>=1.2
-pandas>=1.3
-numpy>=1.21
-
-# Visualization
-matplotlib>=3.5
-seaborn>=0.11
-
-# NLP Preprocessing
-nltk>=3.7
-
-# Model Persistence
-joblib>=1.1
-
-# UI / Demo
-streamlit>=1.26
-
-# Development Tools
-openspec-cli>=1.0.0
-
+numpy==1.23.5
+pandas==2.1.1
+scikit-learn==1.3.2
+matplotlib==3.7.2
+seaborn==0.12.2
+nltk==3.9.2
+joblib==1.3.2
+streamlit==1.27.0

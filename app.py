@@ -38,18 +38,18 @@ def clean_text(text: str) -> str:
 # Streamlit App
 # -------------------------------
 st.set_page_config(page_title="Email Spam Classification Web", layout="wide")
-st.title("📧 Email Spam Classification (Web Training + Prediction)")
+st.title("📧 Email/SMS Spam Classification (Web Training + Prediction)")
 
 # -------------------------------
 # 側邊欄設定
 # -------------------------------
 st.sidebar.header("⚙️ 訓練設定")
-uploaded_file = st.sidebar.file_uploader("上傳無表頭 CSV (雙引號逗號分隔)", type=["csv"])
 test_size = st.sidebar.slider("測試集比例", 0.1, 0.5, 0.2)
 seed = st.sidebar.number_input("隨機種子", value=42, step=1)
 train_button = st.sidebar.button("開始訓練模型")
 
-# 模型與向量器保存路徑
+# 固定資料路徑
+dataset_path = "datasets/sms_spam_no_header.csv"
 model_dir = "models"
 os.makedirs(model_dir, exist_ok=True)
 model_path = os.path.join(model_dir, "email_svm_model.joblib")
@@ -59,10 +59,9 @@ vectorizer_path = os.path.join(model_dir, "tfidf_vectorizer.joblib")
 # 訓練模型
 # -------------------------------
 if train_button:
-    if uploaded_file:
+    if os.path.exists(dataset_path):
         # 讀 CSV，無表頭，自動解析雙引號逗號分隔
-        df = pd.read_csv(uploaded_file, header=None, encoding='utf-8')
-        
+        df = pd.read_csv(dataset_path, header=None, encoding='utf-8')
         if df.shape[1] < 2:
             st.error("CSV 必須至少有兩欄：label 與 email_text")
         else:
@@ -143,7 +142,7 @@ if train_button:
             plt.title("Precision-Recall Curve")
             st.pyplot(plt)
     else:
-        st.warning("請先上傳 CSV 檔案")
+        st.error(f"找不到資料檔案：{dataset_path}")
 
 # -------------------------------
 # 單封郵件即時預測
@@ -153,7 +152,16 @@ if os.path.exists(model_path) and os.path.exists(vectorizer_path):
     model = joblib.load(model_path)
     vectorizer = joblib.load(vectorizer_path)
 
-    user_input = st.text_area("輸入郵件內容", height=150)
+    # 下拉選擇示範
+    example_texts = [
+        "Free entry in 2 a wkly comp to win FA Cup final tkts",
+        "Hey, are we still meeting for lunch tomorrow?",
+        "Congratulations! You won a prize, claim now!"
+    ]
+    user_input = st.selectbox("選擇範例郵件或自行輸入：", ["手動輸入"] + example_texts)
+    if user_input == "手動輸入":
+        user_input = st.text_area("輸入郵件內容", height=150)
+
     if st.button("預測郵件", key="predict_button"):
         if user_input.strip():
             vec = vectorizer.transform([user_input])
@@ -163,4 +171,4 @@ if os.path.exists(model_path) and os.path.exists(vectorizer_path):
         else:
             st.warning("請輸入郵件文字")
 else:
-    st.info("請先上傳資料並訓練模型")
+    st.info("請先訓練模型")
